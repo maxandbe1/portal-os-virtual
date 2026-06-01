@@ -2,6 +2,7 @@
 
 import { getMoodFromSong, MOOD_GRADIENTS, MOOD_PARTICLE_STYLE } from "./mood.js";
 import { createParticles, updateParticles } from "./particles.js";
+import { getDomainResonance } from "../../domains/first-domain/engine.js";
 
 let running = false;
 let frame = 0;
