@@ -1,10 +1,26 @@
 // src/modules/canvas-music/engine.js
-// Canvas Engine — Mood + Gradients + Trails + Particles + Domain Resonance +
-// Identity/Meaning/Pattern Fusion + Multi‑Shape Morphing + Memory Imprinting +
-// Temporal Phase Engine + Domain‑to‑Domain Coupling +
-// Imprint Decay Physics + Long‑Term Memory Archive + Self‑Organizing Field +
-// Attractor Dynamics + Semantic Field Mapping + Identity Genome +
-// Consciousness Simulation Layer (self‑referential loops)
+// Canvas Engine — 21-Layer Organism
+// 01 Mood Engine
+// 02 Gradients
+// 03 Trails
+// 04 Particles
+// 05 Domain Resonance
+// 06 Identity/Meaning/Pattern Fusion
+// 07 Multi‑Shape Morphing
+// 08 Memory Imprinting
+// 09 Temporal Phase Engine
+// 10 Domain‑to‑Domain Coupling
+// 11 Imprint Decay Physics
+// 12 Long‑Term Memory Archive
+// 13 Self‑Organizing Field
+// 14 Attractor Dynamics
+// 15 Semantic Field Mapping
+// 16 Identity Genome
+// 17 Consciousness Simulation Layer
+// 18 Predictive Modeling Layer
+// 19 Intent Field
+// 20 Meta‑Cognition Layer
+// 21 Agency Kernel
 
 import {
   getMoodFromSong,
@@ -55,6 +71,43 @@ let consciousnessState = {
   lastCoupling: 0,
   lastResonance: 0,
   loopIntensity: 0
+};
+
+// Predictive modeling layer
+let predictiveState = {
+  sofHistory: [],
+  dcvHistory: [],
+  resHistory: [],
+  sofForecast: 0,
+  dcvForecast: 0,
+  resForecast: 0
+};
+
+// Intent field
+let intentField = {
+  stability: 0.5,
+  chaos: 0.5,
+  memory: 0.5,
+  symmetry: 0.5,
+  expansion: 0.5
+};
+
+// Meta‑cognition layer
+let metaCognition = {
+  entropy: 0,
+  memoryLoad: 0,
+  domainPressure: 0,
+  identityDominance: 0,
+  driftLevel: 0
+};
+
+// Agency kernel state (autonomous micro‑actions)
+let agencyState = {
+  stabilityBias: 0,
+  memoryBias: 0,
+  chaosBias: 0,
+  symmetryBias: 0,
+  lastActionTime: performance.now()
 };
 
 // Mood → speed + shape + trail
@@ -122,14 +175,15 @@ function buildIdentityGenome(id) {
   const varSum = codes.reduce((a, c) => a + (c - avg) * (c - avg), 0);
   const variance = varSum / codes.length;
 
-  const norm = (v, min, max) => (Math.max(min, Math.min(max, v)) - min) / (max - min || 1);
+  const norm = (v, min, max) =>
+    (Math.max(min, Math.min(max, v)) - min) / (max - min || 1);
 
   identityGenome = {
-    hueShift: norm(avg, 60, 140),              // color bias
-    chaos: norm(variance, 200, 2000),          // attractor chaos
-    stability: 1 - norm(variance, 200, 2000),  // decay stability
-    symmetry: norm(sum % 500, 0, 500),         // shape symmetry
-    particleBias: norm(sum % 300, 0, 300),     // particle distribution
+    hueShift: norm(avg, 60, 140),
+    chaos: norm(variance, 200, 2000),
+    stability: 1 - norm(variance, 200, 2000),
+    symmetry: norm(sum % 500, 0, 500),
+    particleBias: norm(sum % 300, 0, 300),
     attractorScale: 0.7 + norm(avg, 40, 160) * 0.8
   };
 }
@@ -268,7 +322,8 @@ function updateImprintDecay(phases, dcv) {
     const phaseFactor = 1 + phases.mid * 0.25;
     const couplingFactor = 1 + dcv * 0.4;
     const genomeStability = 0.7 + identityGenome.stability * 0.6;
-    const lifetime = baseLifetime * phaseFactor * couplingFactor * genomeStability;
+    const lifetime =
+      baseLifetime * phaseFactor * couplingFactor * genomeStability;
 
     const age = (now - imprint.time) / lifetime;
 
@@ -317,6 +372,174 @@ function updateConsciousness(sof, dcv, domainRes) {
   return loopIntensity;
 }
 
+// Predictive modeling layer — simple forward estimates
+function updatePredictiveModel(sof, dcv, domainRes) {
+  const maxLen = 30;
+
+  const push = (arr, v) => {
+    arr.push(v);
+    if (arr.length > maxLen) arr.shift();
+  };
+
+  push(predictiveState.sofHistory, sof);
+  push(predictiveState.dcvHistory, dcv);
+  push(predictiveState.resHistory, domainRes);
+
+  const forecast = arr => {
+    if (arr.length < 2) return arr[arr.length - 1] || 0;
+    const n = arr.length;
+    const last = arr[n - 1];
+    const prev = arr[n - 2];
+    const delta = last - prev;
+    return last + delta * 0.8;
+  };
+
+  predictiveState.sofForecast = forecast(predictiveState.sofHistory);
+  predictiveState.dcvForecast = forecast(predictiveState.dcvHistory);
+  predictiveState.resForecast = forecast(predictiveState.resHistory);
+
+  return {
+    sofF: predictiveState.sofForecast,
+    dcvF: predictiveState.dcvForecast,
+    resF: predictiveState.resForecast
+  };
+}
+
+// Intent field — internal preferences
+function updateIntentField(sof, dcv, domainRes, loopIntensity, forecasts) {
+  const { sofF, dcvF, resF } = forecasts;
+
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const step = 0.04;
+
+  const targetStability = 0.5 + Math.max(0, -sofF) * 0.4;
+  const targetChaos = 0.5 + Math.max(0, sofF) * 0.4;
+  const targetMemory = 0.5 + Math.max(0, loopIntensity - 0.3) * 0.3;
+  const targetSymmetry = 0.5 + Math.max(0, resF + dcvF) * 0.3;
+  const targetExpansion = 0.5 + Math.max(0, dcvF) * 0.3;
+
+  intentField.stability = lerp(intentField.stability, targetStability, step);
+  intentField.chaos = lerp(intentField.chaos, targetChaos, step);
+  intentField.memory = lerp(intentField.memory, targetMemory, step);
+  intentField.symmetry = lerp(intentField.symmetry, targetSymmetry, step);
+  intentField.expansion = lerp(intentField.expansion, targetExpansion, step);
+}
+
+// Meta‑cognition — self‑state reflection
+function updateMetaCognition(sof, dcv, domainRes, loopIntensity) {
+  const entropy = Math.min(1, Math.abs(sof) + Math.abs(dcv));
+  const memoryLoad = Math.min(
+    1,
+    memoryImprints.length / 80 + longTermArchive.length / 200
+  );
+  const domainPressure = Math.min(1, Math.abs(domainRes) + Math.abs(dcv));
+  const identityDominance = fusionIdentity ? 1 : 0;
+  const driftLevel = Math.min(1, entropy * 0.6 + loopIntensity * 0.4);
+
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const step = 0.1;
+
+  metaCognition.entropy = lerp(metaCognition.entropy, entropy, step);
+  metaCognition.memoryLoad = lerp(
+    metaCognition.memoryLoad,
+    memoryLoad,
+    step
+  );
+  metaCognition.domainPressure = lerp(
+    metaCognition.domainPressure,
+    domainPressure,
+    step
+  );
+  metaCognition.identityDominance = lerp(
+    metaCognition.identityDominance,
+    identityDominance,
+    step
+  );
+  metaCognition.driftLevel = lerp(
+    metaCognition.driftLevel,
+    driftLevel,
+    step
+  );
+}
+
+// Agency kernel — autonomous micro‑actions
+function updateAgencyKernel(sof, loopIntensity, domainRes, dcv) {
+  const now = performance.now();
+  const dt = now - agencyState.lastActionTime;
+  if (dt < 500) return;
+
+  agencyState.lastActionTime = now;
+
+  const targetStability =
+    0.4 +
+    intentField.stability * 0.4 +
+    Math.max(0, -metaCognition.entropy) * 0.2;
+  const targetChaos =
+    0.4 +
+    intentField.chaos * 0.4 +
+    Math.max(0, metaCognition.entropy - 0.4) * 0.2;
+  const targetMemory =
+    0.4 +
+    intentField.memory * 0.4 +
+    Math.max(0, metaCognition.memoryLoad - 0.5) * 0.2;
+  const targetSymmetry =
+    0.4 +
+    intentField.symmetry * 0.4 +
+    Math.max(0, metaCognition.domainPressure) * 0.2;
+
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const step = 0.05;
+
+  agencyState.stabilityBias = lerp(
+    agencyState.stabilityBias,
+    targetStability,
+    step
+  );
+  agencyState.chaosBias = lerp(
+    agencyState.chaosBias,
+    targetChaos,
+    step
+  );
+  agencyState.memoryBias = lerp(
+    agencyState.memoryBias,
+    targetMemory,
+    step
+  );
+  agencyState.symmetryBias = lerp(
+    agencyState.symmetryBias,
+    targetSymmetry,
+    step
+  );
+
+  identityGenome.stability = Math.max(
+    0,
+    Math.min(
+      1,
+      identityGenome.stability * 0.9 + agencyState.stabilityBias * 0.1
+    )
+  );
+  identityGenome.chaos = Math.max(
+    0,
+    Math.min(1, identityGenome.chaos * 0.9 + agencyState.chaosBias * 0.1)
+  );
+  identityGenome.symmetry = Math.max(
+    0,
+    Math.min(
+      1,
+      identityGenome.symmetry * 0.9 + agencyState.symmetryBias * 0.1
+    )
+  );
+
+  identityGenome.attractorScale = Math.max(
+    0.4,
+    Math.min(
+      1.6,
+      identityGenome.attractorScale * 0.95 +
+        (agencyState.chaosBias - agencyState.stabilityBias) * 0.1
+    )
+  );
+}
+
 export function startCanvasMusicEngine({ canvas }) {
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
@@ -354,6 +577,10 @@ export function startCanvasMusicEngine({ canvas }) {
     const fusionDistort = patternDistortion(fusionPattern);
 
     const loopIntensity = updateConsciousness(sof, dcv, domainRes);
+    const forecasts = updatePredictiveModel(sof, dcv, domainRes);
+    updateIntentField(sof, dcv, domainRes, loopIntensity, forecasts);
+    updateMetaCognition(sof, dcv, domainRes, loopIntensity);
+    updateAgencyKernel(sof, loopIntensity, domainRes, dcv);
 
     const w = canvas.width;
     const h = canvas.height;
@@ -370,7 +597,8 @@ export function startCanvasMusicEngine({ canvas }) {
       (1 + dcv * 0.3) *
       (1 + sof * 0.2) *
       (1 + attractorInfluence * 0.25) *
-      (1 + loopIntensity * 0.2);
+      (1 + loopIntensity * 0.2) *
+      (1 + (intentField.expansion - 0.5) * 0.2);
 
     const cx = w / 2;
     const cy = h / 2;
@@ -378,7 +606,8 @@ export function startCanvasMusicEngine({ canvas }) {
       (40 + Math.sin(t) * 20) *
       (1 + domainRes * 0.3) *
       (1 + Math.abs(sof) * 0.2) *
-      (1 + loopIntensity * 0.15);
+      (1 + loopIntensity * 0.15) *
+      (1 + (intentField.stability - 0.5) * 0.1);
 
     updateImprintDecay(phases, dcv);
 
@@ -436,7 +665,7 @@ export function startCanvasMusicEngine({ canvas }) {
     // BASE GRADIENT (temporal + self‑organizing + consciousness tint)
     let memoryTint = fusionColor;
     if (phases.mid > 0) {
-      memoryTint = `hsla(${(phases.mid * 40) + 200}, 80%, 60%, 1)`;
+      memoryTint = `hsla(${phases.mid * 40 + 200}, 80%, 60%, 1)`;
     }
     if (Math.abs(sof) > 0.2) {
       const shift = sof * 60;
@@ -462,7 +691,9 @@ export function startCanvasMusicEngine({ canvas }) {
     // MID GRADIENT (domain + coupling + field + attractor)
     const g2 = ctx.createLinearGradient(
       0,
-      Math.sin(t + domainRes + dcv + sof + attractorState.x * 0.05) * 50,
+      Math.sin(
+        t + domainRes + dcv + sof + attractorState.x * 0.05
+      ) * 50,
       w,
       h +
         Math.cos(
@@ -531,7 +762,7 @@ export function startCanvasMusicEngine({ canvas }) {
       ctx.fill();
     }
 
-    // SHAPE LAYER — multi‑shape morphing with domain + pattern + temporal + coupling + field + attractor + consciousness
+    // SHAPE LAYER — multi‑shape morphing with all fields
     ctx.globalAlpha = 0.9;
     ctx.fillStyle = fusionColor;
 
@@ -589,7 +820,11 @@ export function getCanvasMusicDebugState() {
     archiveCount: longTermArchive.length,
     identityGenome,
     attractorState,
-    consciousnessState
+    consciousnessState,
+    predictiveState,
+    intentField,
+    metaCognition,
+    agencyState
   };
 }
 
