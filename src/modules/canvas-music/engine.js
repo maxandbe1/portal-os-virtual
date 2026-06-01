@@ -39,6 +39,9 @@ export function startCanvasMusicEngine({ canvas }) {
 
   function loop(now) {
     if (!running) return;
+    
+    const domainRes = getDomainResonance();
+
 
     const dt = now - lastTime;
     lastTime = now;
