@@ -1,4 +1,12 @@
 // Mood Engine — V1 Mapping
+export const MOOD_PARTICLE_STYLE = {
+  energetic: { speed: 0.004, drift: 0.02, intensity: 2 },
+  romantic: { speed: 0.002, drift: 0.01, intensity: 1.5 },
+  aggressive: { speed: 0.006, drift: 0.03, intensity: 3 },
+  melancholy: { speed: 0.001, drift: 0.008, intensity: 1 },
+  neutral: { speed: 0.0025, drift: 0.012, intensity: 1.2 }
+};
+
 export const MOOD_GRADIENTS = {
   energetic: ["#00E5FF", "#0077FF", "#00FFC8"],
   romantic: ["#FF7AE5", "#FF4FBF", "#FF9AD9"],
