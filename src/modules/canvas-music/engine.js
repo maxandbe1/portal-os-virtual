@@ -34,6 +34,58 @@ export function startCanvasMusicEngine({ canvas }) {
   lastTime = performance.now();
 
   particles = createParticles(120, mood);
+  function drawMorphingShape(ctx, cx, cy, r, t, baseShape, distortion) {
+  ctx.beginPath();
+
+  // Morph factor (0 → 1)
+  const m = (Math.sin(t) + 1) / 2;
+
+  // Circle → Triangle
+  if (baseShape === "triangle") {
+    const angle = (Math.PI * 2) / 3;
+    for (let i = 0; i < 3; i++) {
+      const a = angle * i + t * 0.5;
+      const x = cx + Math.cos(a) * (r + distortion * m);
+      const y = cy + Math.sin(a) * (r + distortion * m);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    return;
+  }
+
+  // Circle → Square
+  if (baseShape === "square") {
+    const size = r + distortion * m;
+    ctx.rect(cx - size, cy - size, size * 2, size * 2);
+    return;
+  }
+
+  // Circle → Ellipse
+  if (baseShape === "ellipse") {
+    ctx.ellipse(
+      cx,
+      cy,
+      r * (1.4 + 0.3 * m),
+      r * (0.8 + 0.2 * m),
+      0,
+      0,
+      Math.PI * 2
+    );
+    return;
+  }
+
+  // Circle → Blob
+  if (baseShape === "blob") {
+    const wobble = Math.sin(t * 2) * 10 * m;
+    ctx.ellipse(cx, cy, r + wobble, r - wobble, 0, 0, Math.PI * 2);
+    return;
+  }
+
+  // Default: Circle
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+}
+
 
   function loop(now) {
     if (!running) return;
