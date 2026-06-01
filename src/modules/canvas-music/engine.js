@@ -8,6 +8,7 @@ import {
   MOOD_GRADIENTS,
   MOOD_PARTICLE_STYLE
 } from "./mood.js";
+
 import { createParticles, updateParticles } from "./particles.js";
 import { getDomainResonance } from "../../domains/first-domain/engine.js";
 
@@ -34,6 +35,16 @@ const MOOD_STYLE = {
   melancholy: { speed: 0.03, shape: "ellipse", trail: 0.02 },
   neutral: { speed: 0.05, shape: "circle", trail: 0.05 }
 };
+function getTemporalPhases() {
+  const now = performance.now();
+
+  return {
+    short: Math.sin(now * 0.001),      // fast (seconds)
+    mid: Math.sin(now * 0.00005),      // medium (minutes)
+    long: Math.sin(now * 0.000001)     // slow (hours)
+  };
+}
+
 
 function getStyle() {
   return MOOD_STYLE[mood] || MOOD_STYLE.neutral;
