@@ -1,4 +1,4 @@
-// Canvas Engine — Multi‑Layer Mood Gradient + Shape + Motion Trails + Particle Field
+// Canvas Engine — Mood + Motion Trails + Particle Field + Domain Resonance
 
 import { getMoodFromSong, MOOD_GRADIENTS, MOOD_PARTICLE_STYLE } from "./mood.js";
 import { createParticles, updateParticles } from "./particles.js";
@@ -10,7 +10,6 @@ let lastTime = performance.now();
 
 let identity = null;
 let mood = "neutral";
-
 let particles = [];
 
 const MOOD_STYLE = {
@@ -34,14 +33,10 @@ export function startCanvasMusicEngine({ canvas }) {
   frame = 0;
   lastTime = performance.now();
 
-  // Create particle field
   particles = createParticles(120, mood);
 
   function loop(now) {
     if (!running) return;
-    
-    const domainRes = getDomainResonance();
-
 
     const dt = now - lastTime;
     lastTime = now;
@@ -51,13 +46,15 @@ export function startCanvasMusicEngine({ canvas }) {
     const particleStyle = MOOD_PARTICLE_STYLE[mood];
     const colors = MOOD_GRADIENTS[mood];
 
+    const domainRes = getDomainResonance(); // 🔥 Domain resonance
+
     const w = canvas.width;
     const h = canvas.height;
 
-    const t = frame * speed;
+    const t = frame * speed * (1 + domainRes * 0.5); // domain amplifies pulse
     const cx = w / 2;
     const cy = h / 2;
-    const r = 40 + Math.sin(t) * 20;
+    const r = (40 + Math.sin(t) * 20) * (1 + domainRes * 0.3); // domain expands shape
 
     // 🔥 MOTION TRAILS
     ctx.globalCompositeOperation = "source-over";
@@ -65,32 +62,37 @@ export function startCanvasMusicEngine({ canvas }) {
     ctx.fillStyle = "#05070A";
     ctx.fillRect(0, 0, w, h);
 
-    // 🔵 LAYER 1 — Base Gradient
+    // 🔵 LAYER 1 — Base Gradient (domain amplifies intensity)
     const g1 = ctx.createRadialGradient(cx, cy, 0, cx, cy, w);
     g1.addColorStop(0, colors[0]);
     g1.addColorStop(1, "#05070A");
 
-    ctx.globalAlpha = 0.35;
+    ctx.globalAlpha = 0.35 + domainRes * 0.2;
     ctx.fillStyle = g1;
     ctx.fillRect(0, 0, w, h);
 
-    // 🟣 LAYER 2 — Mid Gradient
+    // 🟣 LAYER 2 — Mid Gradient (domain shifts direction)
     const g2 = ctx.createLinearGradient(
       0,
-      Math.sin(t) * 50,
+      Math.sin(t + domainRes) * 50,
       w,
-      h + Math.cos(t) * 50
+      h + Math.cos(t - domainRes) * 50
     );
     g2.addColorStop(0, colors[1]);
     g2.addColorStop(1, "transparent");
 
-    ctx.globalAlpha = 0.25;
+    ctx.globalAlpha = 0.25 + domainRes * 0.1;
     ctx.globalCompositeOperation = "lighter";
     ctx.fillStyle = g2;
     ctx.fillRect(0, 0, w, h);
 
-    // ✨ LAYER 3 — PARTICLE FIELD
-    updateParticles(particles, particleStyle, dt);
+    // ✨ LAYER 3 — PARTICLE FIELD (domain increases drift)
+    const boostedParticleStyle = {
+      ...particleStyle,
+      drift: particleStyle.drift * (1 + domainRes * 1.5)
+    };
+
+    updateParticles(particles, boostedParticleStyle, dt);
 
     ctx.globalAlpha = 0.8;
     ctx.fillStyle = colors[2];
@@ -104,24 +106,40 @@ export function startCanvasMusicEngine({ canvas }) {
       ctx.fill();
     }
 
-    // 🔥 LAYER 4 — Shape Layer
+    // 🔥 LAYER 4 — Shape Layer (domain distorts shape)
     ctx.globalAlpha = 0.9;
     ctx.fillStyle = colors[2];
 
     ctx.beginPath();
 
+    const distortion = domainRes * 20;
+
     if (shape === "circle") ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    if (shape === "square") ctx.rect(cx - r, cy - r, r * 2, r * 2);
+
+    if (shape === "square")
+      ctx.rect(cx - r - distortion, cy - r, (r * 2) + distortion, r * 2);
+
     if (shape === "triangle") {
-      ctx.moveTo(cx, cy - r);
+      ctx.moveTo(cx, cy - r - distortion);
       ctx.lineTo(cx - r, cy + r);
-      ctx.lineTo(cx + r, cy + r);
+      ctx.lineTo(cx + r + distortion, cy + r);
       ctx.closePath();
     }
-    if (shape === "ellipse") ctx.ellipse(cx, cy, r * 1.4, r * 0.8, 0, 0, Math.PI * 2);
+
+    if (shape === "ellipse")
+      ctx.ellipse(cx, cy, r * 1.4 + distortion, r * 0.8, 0, 0, Math.PI * 2);
+
     if (shape === "blob") {
       const wobble = Math.sin(t * 2) * 10;
-      ctx.ellipse(cx, cy, r + wobble, r - wobble, 0, 0, Math.PI * 2);
+      ctx.ellipse(
+        cx,
+        cy,
+        r + wobble + distortion,
+        r - wobble,
+        0,
+        0,
+        Math.PI * 2
+      );
     }
 
     ctx.fill();
@@ -139,8 +157,6 @@ export function stopCanvasMusicEngine() {
 export function setCanvasIdentityState(song) {
   identity = song;
   mood = getMoodFromSong(song);
-
-  // Recreate particle field for new mood
   particles = createParticles(120, mood);
 }
 
