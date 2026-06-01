@@ -1,3 +1,4 @@
+
 // src/modules/canvas-music/engine.js
 // Canvas Engine — Mood + Gradients + Trails + Particles + Domain Resonance +
 // Identity/Meaning/Pattern Fusion + Multi‑Shape Morphing + Memory Imprinting
@@ -59,54 +60,6 @@ function patternDistortion(p) {
   const hash = [...p].reduce((a, c) => a + c.charCodeAt(0), 0);
   return (hash % 40) - 20; // -20 → +20 px
 }
-function drawMorphingShape(ctx, cx, cy, r, t, baseShape, distortion) {
-  ctx.beginPath();
-
-  const m = (Math.sin(t) + 1) / 2; // 0 → 1 morph factor
-
-  if (baseShape === "triangle") {
-    const angle = (Math.PI * 2) / 3;
-    for (let i = 0; i < 3; i++) {
-      const a = angle * i + t * 0.5;
-      const x = cx + Math.cos(a) * (r + distortion * m);
-      const y = cy + Math.sin(a) * (r + distortion * m);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    return;
-  }
-
-  if (baseShape === "square") {
-    const size = r + distortion * m;
-    ctx.rect(cx - size, cy - size, size * 2, size * 2);
-    return;
-  }
-
-  if (baseShape === "ellipse") {
-    ctx.ellipse(
-      cx,
-      cy,
-      r * (1.4 + 0.3 * m),
-      r * (0.8 + 0.2 * m),
-      0,
-      0,
-      Math.PI * 2
-    );
-    return;
-  }
-
-  if (baseShape === "blob") {
-    const wobble = Math.sin(t * 2) * 10 * m;
-    ctx.ellipse(cx, cy, r + wobble, r - wobble, 0, 0, Math.PI * 2);
-    return;
-  }
-
-  // default: circle
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-}
-
-
 
 // Multi‑shape morphing
 function drawMorphingShape(ctx, cx, cy, r, t, baseShape, distortion) {
@@ -152,6 +105,7 @@ function drawMorphingShape(ctx, cx, cy, r, t, baseShape, distortion) {
     return;
   }
 
+  // default: circle
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
 }
 
@@ -337,4 +291,3 @@ export function getCanvasMusicDebugState() {
     memoryCount: memoryImprints.length
   };
 }
-
