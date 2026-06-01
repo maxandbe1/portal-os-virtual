@@ -2,6 +2,22 @@ import React from "react";
 import ConsoleBridge from "../modules/console/bridge.js";
 import FirstDomainBridge from "../domains/first-domain/bridge.js";
 import CanvasEngineView from "./CanvasEngineView.jsx";
+import CanvasEngineView from "./CanvasEngineView.jsx";
+import SongDropdown from "./SongDropdown.jsx";
+
+export default function App() {
+  return (
+    <div style={{ padding: 24 }}>
+      <h1>Portal‑OS V1</h1>
+      <p>Virtual Ecosystem — First Domain Activated</p>
+
+      <SongDropdown />
+
+      <CanvasEngineView />
+    </div>
+  );
+}
+
 
 export default function App() {
   return (
