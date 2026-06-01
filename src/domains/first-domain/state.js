@@ -3,8 +3,10 @@ export const initialDomainState = {
   name: "The First Domain",
   version: "1.0.0",
   createdAt: new Date().toISOString(),
+
   nodes: [
-    { id: "root", label: "Origin Node" },
-    { id: "gate", label: "Gateway Node" }
+    { id: "root", label: "Origin Node", resonance: 0.8 },
+    { id: "gate", label: "Gateway Node", resonance: 0.4 }
   ]
 };
+
