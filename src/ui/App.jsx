@@ -1,6 +1,7 @@
 import React from "react";
 import ConsoleBridge from "../modules/console/bridge.js";
 import FirstDomainBridge from "../domains/first-domain/bridge.js";
+import CanvasEngineView from "./CanvasEngineView.jsx";
 
 export default function App() {
   const domain = FirstDomainBridge.state();
