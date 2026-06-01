@@ -1,6 +1,7 @@
-// Canvas Engine — Multi‑Layer Mood Gradient + Shape + Motion Trails
+// Canvas Engine — Multi‑Layer Mood Gradient + Shape + Motion Trails + Particle Field
 
-import { getMoodFromSong, MOOD_GRADIENTS } from "./mood.js";
+import { getMoodFromSong, MOOD_GRADIENTS, MOOD_PARTICLE_STYLE } from "./mood.js";
+import { createParticles, updateParticles } from "./particles.js";
 
 let running = false;
 let frame = 0;
@@ -9,7 +10,8 @@ let lastTime = performance.now();
 let identity = null;
 let mood = "neutral";
 
-// Mood → speed + shape + trail decay
+let particles = [];
+
 const MOOD_STYLE = {
   energetic: { speed: 0.12, shape: "triangle", trail: 0.08 },
   romantic: { speed: 0.06, shape: "blob", trail: 0.03 },
@@ -31,6 +33,9 @@ export function startCanvasMusicEngine({ canvas }) {
   frame = 0;
   lastTime = performance.now();
 
+  // Create particle field
+  particles = createParticles(120, mood);
+
   function loop(now) {
     if (!running) return;
 
@@ -39,6 +44,7 @@ export function startCanvasMusicEngine({ canvas }) {
     frame++;
 
     const { speed, shape, trail } = getStyle();
+    const particleStyle = MOOD_PARTICLE_STYLE[mood];
     const colors = MOOD_GRADIENTS[mood];
 
     const w = canvas.width;
@@ -49,7 +55,7 @@ export function startCanvasMusicEngine({ canvas }) {
     const cy = h / 2;
     const r = 40 + Math.sin(t) * 20;
 
-    // 🔥 MOTION TRAILS (fade previous frame)
+    // 🔥 MOTION TRAILS
     ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = trail;
     ctx.fillStyle = "#05070A";
@@ -64,7 +70,7 @@ export function startCanvasMusicEngine({ canvas }) {
     ctx.fillStyle = g1;
     ctx.fillRect(0, 0, w, h);
 
-    // 🟣 LAYER 2 — Mid Gradient (moves with pulse)
+    // 🟣 LAYER 2 — Mid Gradient
     const g2 = ctx.createLinearGradient(
       0,
       Math.sin(t) * 50,
@@ -79,7 +85,22 @@ export function startCanvasMusicEngine({ canvas }) {
     ctx.fillStyle = g2;
     ctx.fillRect(0, 0, w, h);
 
-    // 🔥 LAYER 3 — Shape Layer (with trails)
+    // ✨ LAYER 3 — PARTICLE FIELD
+    updateParticles(particles, particleStyle, dt);
+
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = colors[2];
+
+    for (let p of particles) {
+      const px = p.x * w;
+      const py = p.y * h;
+
+      ctx.beginPath();
+      ctx.arc(px, py, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 🔥 LAYER 4 — Shape Layer
     ctx.globalAlpha = 0.9;
     ctx.fillStyle = colors[2];
 
@@ -114,6 +135,9 @@ export function stopCanvasMusicEngine() {
 export function setCanvasIdentityState(song) {
   identity = song;
   mood = getMoodFromSong(song);
+
+  // Recreate particle field for new mood
+  particles = createParticles(120, mood);
 }
 
 export function getCanvasMusicDebugState() {
