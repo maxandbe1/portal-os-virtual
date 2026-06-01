@@ -191,4 +191,134 @@ export function startCanvasMusicEngine({ canvas }) {
         (performance.now() - imprint.time) /
         (2000 + phases.mid * 500);
 
-      if (age > 1) continue
+      if (age > 1) continue;
+
+      const alpha = imprint.weight * (1 - age);
+      const radiusBoost = imprint.domain * 40;
+
+      ctx.globalAlpha = alpha * 0.4;
+      ctx.fillStyle = imprint.color;
+
+      ctx.beginPath();
+      ctx.arc(
+        cx,
+        cy,
+        r + imprint.distortion + radiusBoost,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+
+    // BASE GRADIENT (tinted by temporal phase)
+    let memoryTint = fusionColor;
+    if (phases.mid > 0) {
+      memoryTint = `hsla(${(phases.mid * 40) + 200}, 80%, 60%, 1)`;
+    }
+
+    const g1 = ctx.createRadialGradient(cx, cy, 0, cx, cy, w);
+    g1.addColorStop(0, memoryTint);
+    g1.addColorStop(1, "#05070A");
+
+    ctx.globalAlpha = 0.35 + domainRes * 0.2;
+    ctx.fillStyle = g1;
+    ctx.fillRect(0, 0, w, h);
+
+    // MID GRADIENT
+    const g2 = ctx.createLinearGradient(
+      0,
+      Math.sin(t + domainRes) * 50,
+      w,
+      h + Math.cos(t - domainRes) * 50
+    );
+    g2.addColorStop(0, colors[1]);
+    g2.addColorStop(1, "transparent");
+
+    ctx.globalAlpha = 0.25 + domainRes * 0.1;
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = g2;
+    ctx.fillRect(0, 0, w, h);
+
+    // PARTICLE FIELD (memory‑boosted drift)
+    let memoryDrift = 0;
+    for (let imprint of memoryImprints) {
+      const age =
+        (performance.now() - imprint.time) /
+        (3000 + phases.mid * 500);
+      if (age < 1) memoryDrift += imprint.domain * (1 - age) * 0.02;
+    }
+
+    const boostedParticleStyle = {
+      ...particleStyle,
+      drift: particleStyle.drift * (1 + domainRes * 1.5)
+    };
+
+    const memoryParticleStyle = {
+      ...boostedParticleStyle,
+      drift: boostedParticleStyle.drift + memoryDrift
+    };
+
+    updateParticles(particles, memoryParticleStyle, dt);
+
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = fusionColor;
+
+    for (let p of particles) {
+      const px = p.x * w;
+      const py = p.y * h;
+
+      ctx.beginPath();
+      ctx.arc(px, py, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // SHAPE LAYER — multi‑shape morphing with domain + pattern + temporal distortion
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = fusionColor;
+
+    const distortion =
+      domainRes * 20 +
+      fusionDistort +
+      phases.short * 10 +
+      phases.mid * 5;
+
+    drawMorphingShape(ctx, cx, cy, r, t, shape, distortion);
+    ctx.fill();
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+}
+
+export function stopCanvasMusicEngine() {
+  running = false;
+}
+
+export function setCanvasIdentityState(v) {
+  fusionIdentity = v;
+  addMemoryImprint();
+}
+
+export function setCanvasMeaningState(v) {
+  fusionMeaning = v;
+  addMemoryImprint();
+}
+
+export function setCanvasPatternState(v) {
+  fusionPattern = v;
+  addMemoryImprint();
+}
+
+export function getCanvasMusicDebugState() {
+  return {
+    running,
+    frame,
+    identity: fusionIdentity,
+    meaning: fusionMeaning,
+    pattern: fusionPattern,
+    mood,
+    memoryCount: memoryImprints.length
+  };
+}
+
