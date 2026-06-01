@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useCommerce } from "../../commerce/CommerceProvider.jsx";
 import { getProductPrice } from "../../commerce/pricingConfig.js";
@@ -35,3 +34,5 @@ export function ProductDetailPage({ product, onBack }) {
     </div>
   );
 }
+
+
