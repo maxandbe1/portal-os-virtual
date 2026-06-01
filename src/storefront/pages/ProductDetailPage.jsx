@@ -28,3 +28,4 @@ export function ProductDetailPage({ product, onBack }) {
     </div>
   );
 }
+
