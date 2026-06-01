@@ -1,6 +1,6 @@
-// Canvas Engine — Mood Reactive (Color + Shape + Pulse)
+// Canvas Engine — Multi‑Layer Mood Gradient + Shape
 
-import { getMoodFromSong } from "./mood.js";
+import { getMoodFromSong, MOOD_GRADIENTS } from "./mood.js";
 
 let running = false;
 let frame = 0;
@@ -9,13 +9,12 @@ let lastTime = performance.now();
 let identity = null;
 let mood = "neutral";
 
-// Mood → color + pulse speed + shape
 const MOOD_STYLE = {
-  energetic: { color: "#00E5FF", speed: 0.12, shape: "triangle" },
-  romantic: { color: "#FF7AE5", speed: 0.06, shape: "blob" },
-  aggressive: { color: "#FF3B30", speed: 0.18, shape: "square" },
-  melancholy: { color: "#4B8BFF", speed: 0.03, shape: "ellipse" },
-  neutral: { color: "#27F3FF", speed: 0.05, shape: "circle" }
+  energetic: { speed: 0.12, shape: "triangle" },
+  romantic: { speed: 0.06, shape: "blob" },
+  aggressive: { speed: 0.18, shape: "square" },
+  melancholy: { speed: 0.03, shape: "ellipse" },
+  neutral: { speed: 0.05, shape: "circle" }
 };
 
 function getStyle() {
@@ -38,22 +37,47 @@ export function startCanvasMusicEngine({ canvas }) {
     lastTime = now;
     frame++;
 
-    const { color, speed, shape } = getStyle();
+    const { speed, shape } = getStyle();
+    const colors = MOOD_GRADIENTS[mood];
 
     const w = canvas.width;
     const h = canvas.height;
-
-    ctx.fillStyle = "#05070A";
-    ctx.fillRect(0, 0, w, h);
 
     const t = frame * speed;
     const cx = w / 2;
     const cy = h / 2;
     const r = 40 + Math.sin(t) * 20;
 
-    ctx.fillStyle = color;
+    // 🔵 LAYER 1 — Base Gradient
+    const g1 = ctx.createRadialGradient(cx, cy, 0, cx, cy, w);
+    g1.addColorStop(0, colors[0]);
+    g1.addColorStop(1, "#05070A");
 
-    // 🔥 Shape logic
+    ctx.globalAlpha = 0.35;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = g1;
+    ctx.fillRect(0, 0, w, h);
+
+    // 🟣 LAYER 2 — Mid Gradient (moves with pulse)
+    const g2 = ctx.createLinearGradient(
+      0,
+      Math.sin(t) * 50,
+      w,
+      h + Math.cos(t) * 50
+    );
+    g2.addColorStop(0, colors[1]);
+    g2.addColorStop(1, "transparent");
+
+    ctx.globalAlpha = 0.25;
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = g2;
+    ctx.fillRect(0, 0, w, h);
+
+    // 🔥 LAYER 3 — Shape Layer
+    ctx.globalAlpha = 0.9;
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = colors[2];
+
     ctx.beginPath();
 
     if (shape === "circle") {
