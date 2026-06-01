@@ -1,5 +1,4 @@
-
-// Canvas Engine — Mood Reactive Version
+// Canvas Engine — Mood Reactive (Color + Shape + Pulse)
 
 import { getMoodFromSong } from "./mood.js";
 
@@ -7,16 +6,16 @@ let running = false;
 let frame = 0;
 let lastTime = performance.now();
 
-let identity = null; // song
+let identity = null;
 let mood = "neutral";
 
-// Mood → color + pulse speed
+// Mood → color + pulse speed + shape
 const MOOD_STYLE = {
-  energetic: { color: "#00E5FF", speed: 0.12 },
-  romantic: { color: "#FF7AE5", speed: 0.06 },
-  aggressive: { color: "#FF3B30", speed: 0.18 },
-  melancholy: { color: "#4B8BFF", speed: 0.03 },
-  neutral: { color: "#27F3FF", speed: 0.05 }
+  energetic: { color: "#00E5FF", speed: 0.12, shape: "triangle" },
+  romantic: { color: "#FF7AE5", speed: 0.06, shape: "blob" },
+  aggressive: { color: "#FF3B30", speed: 0.18, shape: "square" },
+  melancholy: { color: "#4B8BFF", speed: 0.03, shape: "ellipse" },
+  neutral: { color: "#27F3FF", speed: 0.05, shape: "circle" }
 };
 
 function getStyle() {
@@ -39,7 +38,7 @@ export function startCanvasMusicEngine({ canvas }) {
     lastTime = now;
     frame++;
 
-    const { color, speed } = getStyle();
+    const { color, speed, shape } = getStyle();
 
     const w = canvas.width;
     const h = canvas.height;
@@ -52,11 +51,35 @@ export function startCanvasMusicEngine({ canvas }) {
     const cy = h / 2;
     const r = 40 + Math.sin(t) * 20;
 
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-
-    // 🔥 Mood‑based color
     ctx.fillStyle = color;
+
+    // 🔥 Shape logic
+    ctx.beginPath();
+
+    if (shape === "circle") {
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    }
+
+    if (shape === "square") {
+      ctx.rect(cx - r, cy - r, r * 2, r * 2);
+    }
+
+    if (shape === "triangle") {
+      ctx.moveTo(cx, cy - r);
+      ctx.lineTo(cx - r, cy + r);
+      ctx.lineTo(cx + r, cy + r);
+      ctx.closePath();
+    }
+
+    if (shape === "ellipse") {
+      ctx.ellipse(cx, cy, r * 1.4, r * 0.8, 0, 0, Math.PI * 2);
+    }
+
+    if (shape === "blob") {
+      const wobble = Math.sin(t * 2) * 10;
+      ctx.ellipse(cx, cy, r + wobble, r - wobble, 0, 0, Math.PI * 2);
+    }
+
     ctx.fill();
 
     requestAnimationFrame(loop);
@@ -77,3 +100,4 @@ export function setCanvasIdentityState(song) {
 export function getCanvasMusicDebugState() {
   return { running, frame, identity, mood };
 }
+
