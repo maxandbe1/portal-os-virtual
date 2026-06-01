@@ -1,7 +1,8 @@
 // src/modules/canvas-music/engine.js
 // Canvas Engine — Mood + Gradients + Trails + Particles + Domain Resonance +
 // Identity/Meaning/Pattern Fusion + Multi‑Shape Morphing + Memory Imprinting +
-// Temporal Phase Engine (short/mid/long cycles)
+// Temporal Phase Engine + Domain‑to‑Domain Coupling +
+// Imprint Decay Physics + Long‑Term Memory Archive + Self‑Organizing Field
 
 import {
   getMoodFromSong,
@@ -10,6 +11,7 @@ import {
 } from "./mood.js";
 import { createParticles, updateParticles } from "./particles.js";
 import { getDomainResonance } from "../../domains/first-domain/engine.js";
+import { getDomainCouplingVector } from "../../domains/domain-coupling/engine.js";
 
 let running = false;
 let frame = 0;
@@ -23,8 +25,9 @@ let fusionIdentity = "";
 let fusionMeaning = "";
 let fusionPattern = "";
 
-// Memory imprints
+// Memory systems
 let memoryImprints = [];
+let longTermArchive = [];
 
 // Mood → speed + shape + trail
 const MOOD_STYLE = {
@@ -65,10 +68,32 @@ function patternDistortion(p) {
 function getTemporalPhases() {
   const now = performance.now();
   return {
-    short: Math.sin(now * 0.001),      // seconds
-    mid: Math.sin(now * 0.00005),      // minutes
-    long: Math.sin(now * 0.000001)     // hours
+    short: Math.sin(now * 0.001),
+    mid: Math.sin(now * 0.00005),
+    long: Math.sin(now * 0.000001)
   };
+}
+
+// Self‑organizing field (emergent behavior from imprints)
+function getSelfOrganizingField() {
+  if (memoryImprints.length === 0 && longTermArchive.length === 0) return 0;
+
+  let sum = 0;
+  let count = 0;
+
+  for (const im of memoryImprints) {
+    sum += (im.distortion || 0) * (im.weight || 1);
+    count++;
+  }
+
+  for (const im of longTermArchive) {
+    sum += (im.distortion || 0) * (im.weight || 0.3);
+    count++;
+  }
+
+  if (count === 0) return 0;
+  const avg = sum / count;
+  return Math.max(-1, Math.min(1, avg / 40)); // normalize to [-1, 1]
 }
 
 // Multi‑shape morphing
@@ -117,19 +142,57 @@ function drawMorphingShape(ctx, cx, cy, r, t, baseShape, distortion) {
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
 }
 
-// Memory imprint creation
+// Imprint decay physics + archive
 function addMemoryImprint() {
+  const domain = getDomainResonance();
+  const meaningSpeed = meaningMotion(fusionMeaning);
+
   const imprint = {
     color: identityColor(fusionIdentity),
     distortion: patternDistortion(fusionPattern),
-    meaningSpeed: meaningMotion(fusionMeaning),
-    domain: getDomainResonance(),
+    meaningSpeed,
+    domain,
     time: performance.now(),
-    weight: 1
+    weight: 1,
+    // decayRate: higher domain + higher meaningSpeed → slower decay
+    decayRate: 0.6 + (1 - domain) * 0.3 + (1 - Math.min(meaningSpeed * 10, 1)) * 0.1
   };
 
   memoryImprints.push(imprint);
-  if (memoryImprints.length > 50) memoryImprints.shift();
+  if (memoryImprints.length > 80) memoryImprints.shift();
+}
+
+function updateImprintDecay(phases, dcv) {
+  const now = performance.now();
+  const nextImprints = [];
+
+  for (const imprint of memoryImprints) {
+    const baseLifetime = 2200 * imprint.decayRate;
+    const phaseFactor = 1 + phases.mid * 0.25;
+    const couplingFactor = 1 + dcv * 0.4;
+    const lifetime = baseLifetime * phaseFactor * couplingFactor;
+
+    const age = (now - imprint.time) / lifetime;
+
+    if (age >= 1) {
+      // move to long‑term archive (compressed)
+      longTermArchive.push({
+        color: imprint.color,
+        distortion: imprint.distortion,
+        weight: imprint.weight * 0.4,
+        time: now
+      });
+      if (longTermArchive.length > 200) longTermArchive.shift();
+      continue;
+    }
+
+    // non‑linear decay curve
+    const remaining = 1 - age;
+    imprint.weight = remaining * remaining;
+    nextImprints.push(imprint);
+  }
+
+  memoryImprints = nextImprints;
 }
 
 export function startCanvasMusicEngine({ canvas }) {
@@ -141,7 +204,6 @@ export function startCanvasMusicEngine({ canvas }) {
   frame = 0;
   lastTime = performance.now();
 
-  // Particle count modulated by long‑wave phase
   const phases = getTemporalPhases();
   const baseCount = 120;
   const phaseBoost = Math.floor((phases.long + 1) * 20);
@@ -155,6 +217,9 @@ export function startCanvasMusicEngine({ canvas }) {
     frame++;
 
     const phases = getTemporalPhases();
+    const dcv = getDomainCouplingVector();
+    const sof = getSelfOrganizingField();
+
     const { speed, shape, trail } = getStyle();
     const particleStyle = MOOD_PARTICLE_STYLE[mood];
     const colors = MOOD_GRADIENTS[mood];
@@ -171,13 +236,19 @@ export function startCanvasMusicEngine({ canvas }) {
       frame *
       (speed + fusionSpeed) *
       (1 + domainRes * 0.5) *
-      (1 + phases.short * 0.15);
+      (1 + phases.short * 0.15) *
+      (1 + dcv * 0.3) *
+      (1 + sof * 0.2);
 
     const cx = w / 2;
     const cy = h / 2;
     const r =
       (40 + Math.sin(t) * 20) *
-      (1 + domainRes * 0.3);
+      (1 + domainRes * 0.3) *
+      (1 + Math.abs(sof) * 0.2);
+
+    // Update imprint decay + archive
+    updateImprintDecay(phases, dcv);
 
     // MOTION TRAILS
     ctx.globalCompositeOperation = "source-over";
@@ -185,18 +256,15 @@ export function startCanvasMusicEngine({ canvas }) {
     ctx.fillStyle = "#05070A";
     ctx.fillRect(0, 0, w, h);
 
-    // MEMORY IMPRINT LAYER
+    // MEMORY IMPRINT LAYER (short‑term)
+    const nowTime = performance.now();
     for (let imprint of memoryImprints) {
-      const age =
-        (performance.now() - imprint.time) /
-        (2000 + phases.mid * 500);
+      const alpha = imprint.weight;
+      if (alpha <= 0.01) continue;
 
-      if (age > 1) continue;
-
-      const alpha = imprint.weight * (1 - age);
       const radiusBoost = imprint.domain * 40;
 
-      ctx.globalAlpha = alpha * 0.4;
+      ctx.globalAlpha = alpha * 0.5;
       ctx.fillStyle = imprint.color;
 
       ctx.beginPath();
@@ -210,42 +278,68 @@ export function startCanvasMusicEngine({ canvas }) {
       ctx.fill();
     }
 
-    // BASE GRADIENT (tinted by temporal phase)
+    // LONG‑TERM ARCHIVE GHOST LAYER
+    for (let imprint of longTermArchive) {
+      const age = (nowTime - imprint.time) / 60000; // minutes scale
+      if (age > 1.5) continue;
+
+      const alpha = imprint.weight * (1 - Math.min(age, 1));
+      if (alpha <= 0.01) continue;
+
+      ctx.globalAlpha = alpha * 0.2;
+      ctx.fillStyle = imprint.color;
+
+      ctx.beginPath();
+      ctx.arc(
+        cx,
+        cy,
+        r + imprint.distortion * 0.5,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+
+    // BASE GRADIENT (temporal + self‑organizing tint)
     let memoryTint = fusionColor;
     if (phases.mid > 0) {
       memoryTint = `hsla(${(phases.mid * 40) + 200}, 80%, 60%, 1)`;
+    }
+    if (Math.abs(sof) > 0.2) {
+      const shift = sof * 60;
+      memoryTint = `hsla(${shift + 220}, 80%, 55%, 1)`;
     }
 
     const g1 = ctx.createRadialGradient(cx, cy, 0, cx, cy, w);
     g1.addColorStop(0, memoryTint);
     g1.addColorStop(1, "#05070A");
 
-    ctx.globalAlpha = 0.35 + domainRes * 0.2;
+    ctx.globalAlpha = 0.35 + domainRes * 0.2 + Math.abs(sof) * 0.1;
     ctx.fillStyle = g1;
     ctx.fillRect(0, 0, w, h);
 
-    // MID GRADIENT
+    // MID GRADIENT (domain + coupling + field)
     const g2 = ctx.createLinearGradient(
       0,
-      Math.sin(t + domainRes) * 50,
+      Math.sin(t + domainRes + dcv + sof) * 50,
       w,
-      h + Math.cos(t - domainRes) * 50
+      h + Math.cos(t - domainRes - dcv + sof) * 50
     );
     g2.addColorStop(0, colors[1]);
     g2.addColorStop(1, "transparent");
 
-    ctx.globalAlpha = 0.25 + domainRes * 0.1;
+    ctx.globalAlpha = 0.25 + domainRes * 0.1 + Math.abs(sof) * 0.05;
     ctx.globalCompositeOperation = "lighter";
     ctx.fillStyle = g2;
     ctx.fillRect(0, 0, w, h);
 
-    // PARTICLE FIELD (memory‑boosted drift)
+    // PARTICLE FIELD (memory + domain + coupling + field)
     let memoryDrift = 0;
     for (let imprint of memoryImprints) {
-      const age =
-        (performance.now() - imprint.time) /
-        (3000 + phases.mid * 500);
-      if (age < 1) memoryDrift += imprint.domain * (1 - age) * 0.02;
+      const ageFactor = imprint.weight;
+      if (ageFactor > 0) {
+        memoryDrift += imprint.domain * ageFactor * 0.02;
+      }
     }
 
     const boostedParticleStyle = {
@@ -255,7 +349,11 @@ export function startCanvasMusicEngine({ canvas }) {
 
     const memoryParticleStyle = {
       ...boostedParticleStyle,
-      drift: boostedParticleStyle.drift + memoryDrift
+      drift:
+        boostedParticleStyle.drift +
+        memoryDrift +
+        dcv * 0.05 +
+        sof * 0.04
     };
 
     updateParticles(particles, memoryParticleStyle, dt);
@@ -272,7 +370,7 @@ export function startCanvasMusicEngine({ canvas }) {
       ctx.fill();
     }
 
-    // SHAPE LAYER — multi‑shape morphing with domain + pattern + temporal distortion
+    // SHAPE LAYER — multi‑shape morphing with domain + pattern + temporal + coupling + field
     ctx.globalAlpha = 0.9;
     ctx.fillStyle = fusionColor;
 
@@ -280,7 +378,9 @@ export function startCanvasMusicEngine({ canvas }) {
       domainRes * 20 +
       fusionDistort +
       phases.short * 10 +
-      phases.mid * 5;
+      phases.mid * 5 +
+      dcv * 25 +
+      sof * 30;
 
     drawMorphingShape(ctx, cx, cy, r, t, shape, distortion);
     ctx.fill();
@@ -318,7 +418,8 @@ export function getCanvasMusicDebugState() {
     meaning: fusionMeaning,
     pattern: fusionPattern,
     mood,
-    memoryCount: memoryImprints.length
+    memoryCount: memoryImprints.length,
+    archiveCount: longTermArchive.length
   };
 }
 
