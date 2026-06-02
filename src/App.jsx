@@ -5,6 +5,29 @@ import { CommerceProvider } from "./commerce/CommerceProvider.jsx";
 import { StorefrontPage } from "./storefront/pages/StorefrontPage.jsx";
 import { ProductDetailPage } from "./storefront/pages/ProductDetailPage.jsx";
 import { CheckoutPage } from "./storefront/pages/CheckoutPage.jsx";
+// src/App.jsx
+
+import { SubscriptionProvider } from "./subscriptions/SubscriptionProvider.jsx";
+import { SubscriptionPage } from "./storefront/pages/SubscriptionPage.jsx";
+
+// in App component:
+const [view, setView] = useState("storefront");
+
+function goSubscription() {
+  setView("subscription");
+}
+
+return (
+  <SubscriptionProvider>
+    <CommerceProvider>
+      {/* existing views */}
+      {view === "subscription" && (
+        <SubscriptionPage onBack={goStorefront} />
+      )}
+    </CommerceProvider>
+  </SubscriptionProvider>
+);
+
 
 export function App() {
   const [view, setView] = useState("storefront");
