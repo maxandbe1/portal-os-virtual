@@ -1,6 +1,14 @@
 // src/storefront/pages/ProductDetailPage.jsx
 
 import React from "react";
+import {
+  recommendForProduct,
+  recommendCollectionsForProduct,
+  recommendDropsForProduct
+} from "../../recommendation/recommendationEngine.js";
+
+import { RecommendationStrip } from "../components/RecommendationStrip.jsx";
+
 import { useCommerce } from "../../commerce/CommerceProvider.jsx";
 import { getProductPrice } from "../../commerce/pricingConfig.js";
 import { SubscriptionGate } from "../components/SubscriptionGate.jsx";
