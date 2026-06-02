@@ -24,3 +24,4 @@ export function CollectionCard({ collection, onSelect }) {
     </div>
   );
 }
+
